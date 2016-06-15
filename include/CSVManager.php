@@ -20,6 +20,7 @@ class CSVManager
 
         //
         $this->csv_file_name = date("Y_m_d_His") . '.csv';
+        $this->csv_file_name_yesterday = date("Y-m-d",strtotime("-1 day")) . '_delay.csv';
 
         //前日対象データの時間帯
         $this->yesterday_start = date("Y-m-d 17:00:01",strtotime("-2 day"));
@@ -34,6 +35,7 @@ class CSVManager
         //
         $this->csv_title_output_flag = true;
         $this->csv_array = array();
+        $this->csv_array_yesterday = array();
         $this->comment_array = array();
     }
 
@@ -93,8 +95,9 @@ class CSVManager
      * @param none
      * @return $this->csv_file_path . '/' . $this->csv_file_name
      */
-    public function getCSVFileFullPath() {
-        return $this->csv_file_path . $this->csv_file_name;
+    public function getCSVFileFullPath($fileName) {
+        //return $this->csv_file_path . $this->csv_file_name;
+        return $this->csv_file_path . $fileName;
     }
 
     /**
@@ -133,10 +136,11 @@ class CSVManager
      * csvファイルを出力
      *
      */
+    /*
     public function outputCsv() {
         //
-        if (!file_exists ($this->getCSVFileFullPath())) {
-            $fp = fopen($this->getCSVFileFullPath(),'w');
+        if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name))) {
+            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'w');
             if ($this->csv_title && $this->csv_title_output_flag) {
                 //エンコード変換を実施
                 mb_convert_variables('sjis-win','UTF-8', $this->csv_title);
@@ -144,7 +148,7 @@ class CSVManager
                 fputcsv($fp, $this->csv_title);
             }
         } else {
-            $fp = fopen($this->getCSVFileFullPath(),'a');
+            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'a');
         }
 
         //csvファイルへ出力
@@ -158,6 +162,63 @@ class CSVManager
         //csvファイルをクローズ
         fclose($fp);
     }
+    */
+
+    public function outputCsv() {
+        /*
+         * 当日ファイルへ出力
+         * */
+        if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name))) {
+            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'w');
+            if ($this->csv_title && $this->csv_title_output_flag) {
+                //エンコード変換を実施
+                mb_convert_variables('sjis-win','UTF-8', $this->csv_title);
+                //csvファイルへ出力
+                fputcsv($fp, $this->csv_title);
+            }
+        } else {
+            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'a');
+        }
+
+        //csvファイルへ出力
+        mb_convert_variables('sjis-win','UTF-8', $this->csv_array);
+        foreach ($this->csv_array as $csv_key => $csv_value){
+            foreach ($csv_value as $key => $value) {
+                //
+                fputcsv($fp, $this->csv_array[$csv_key][$key]);
+            }
+        }
+        //csvファイルをクローズ
+        fclose($fp);
+
+        /*
+         * 前日ファイルへ出力
+         * */
+        if ($this->csv_array_yesterday) {
+            //タイトルを出力
+            if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name_yesterday))) {
+                $fp = fopen($this->getCSVFileFullPath($this->csv_file_name_yesterday),'w');
+                if ($this->csv_title && $this->csv_title_output_flag) {
+                    //当日でエンコード変換済のため、実施しない
+                    //csvファイルへ出力
+                    fputcsv($fp, $this->csv_title);
+                }
+            } else {
+                $fp = fopen($this->getCSVFileFullPath($this->csv_file_name_yesterday),'a');
+            }
+            //csvファイルへ出力
+            mb_convert_variables('sjis-win','UTF-8', $this->csv_array_yesterday);
+            foreach ($this->csv_array_yesterday as $csv_key => $csv_value){
+                foreach ($csv_value as $key => $value) {
+                    //
+                    fputcsv($fp, $this->csv_array_yesterday[$csv_key][$key]);
+                }
+            }
+            //csvファイルをクローズ
+            fclose($fp);
+        }
+    }
+
     /**
      * addCommentMessage
      *
@@ -229,9 +290,13 @@ class CSVManager
      */
     private $csv_file_path;
     /**
-     * csvファイル名
-     */
+    * csvファイル名
+    */
     private $csv_file_name;
+    /**
+     * csvファイル名(前日分)
+     */
+    private $csv_file_name_yesterday;
     /**
      * commentファイル名
      */
@@ -244,6 +309,10 @@ class CSVManager
      * csv出力データ配列
      */
     public $csv_array;
+    /**
+     * csv出力データ配列
+     */
+    public $csv_array_yesterday;
     /**
      * Comment出力データ配列
      */

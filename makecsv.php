@@ -99,16 +99,22 @@ try{
                        ORDER BY entry_id";
                 //SQL処理を実行
                 $stt_target_data_list = sql_execute($dbh, $sql_target);
+
                 //csvデータを生成
                 $csv_manager->csv_array = null;
+                $csv_manager->csv_array_yesterday = null;
                 //commentデータを生成
                 $csv_manager->comment_array = null;
                 $csv_format_title = array();
+
                 //
                 $update_status_sql = '';
                 $update_price_sql = '';
                 $update_character_aggregation_sql = '';
                 $skip_flag = false;
+                $yesterday_flag = false;
+
+                //
                 while ($row_csv_data = $stt_target_data_list->fetch(PDO::FETCH_ASSOC)) {
                     //csvフォーマットを取得
                     $csv_format_title[] = $row_csv_data['item_name'];
@@ -136,6 +142,8 @@ try{
                             $comment_message = "[set:$decrypted_result]" . "[paper_id:{$target_paper_id}]" .
                                 "[entry_id:{$target_entry_id}]" . "[item_name:{$target_item_name}]";
                             $csv_manager->addCommentMessage($comment_message);
+
+                            //前日のcsvファイル
 
 
                         } elseif ($target_datetime >= $csv_manager->yesterday_start
@@ -200,13 +208,9 @@ try{
                 }//while
 
                 //
-                if (!$skip_flag) {
-                    /**
-                     * csvファイルへ出力
-                     */
-                    $csv_manager->csv_title = $csv_format_title;
-                    $csv_manager->outputCsv();
 
+                //
+                if (!$skip_flag) {
                     /**
                      * csv生成が完了したら、DBを更新
                      */
@@ -221,6 +225,12 @@ try{
                         $dbh->exec($update_character_aggregation_sql);
                         //トランザクションをコミット
                         $dbh->commit();
+
+                        /**
+                         * csvファイルへ出力
+                         */
+                        $csv_manager->csv_title = $csv_format_title;
+                        $csv_manager->outputCsv();
                     } catch (Exception $e) {
                         //トランザクションをロールバック
                         $dbh->rollBack();
