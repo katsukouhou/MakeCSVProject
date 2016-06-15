@@ -106,6 +106,8 @@ try{
                 //commentデータを生成
                 $csv_manager->comment_array = null;
                 $csv_format_title = array();
+                //
+                $target_csv_array = array();
 
                 //
                 $update_status_sql = '';
@@ -125,51 +127,58 @@ try{
                     list($response_flag, $response_value, $err_message) = $decryption_manager->decodeObject($post_data);
                     $decrypted_result = $response_value;
 
+                    //作成日付を取得
+                    $target_datetime = date("Y-m-d H:i:s", strtotime($row_csv_data['created_at']));
                     //
-                    if(!$response_flag) {
-                        //作成日付を取得
-                        $target_datetime = date("Y-m-d H:i:s", strtotime($row_csv_data['created_at']));
-                        //
-                        $target_paper_id = $row_csv_data['paper_id'];
-                        $target_item_name = $row_csv_data['item_name'];
-                        $target_entry_id = $row_csv_data['entry_id'];
-                        //
-                        if ($target_datetime <= $csv_manager->before_yesterday_end) {
-                            //前々日以前の場合は、値を設定
+                    $target_paper_id = $row_csv_data['paper_id'];
+                    $target_item_name = $row_csv_data['item_name'];
+                    $target_entry_id = $row_csv_data['entry_id'];
+                    if ($target_datetime <= $csv_manager->before_yesterday_end) {
+                        //前々日以前の場合は、値を設定
+                        if(!$response_flag) {
                             $decrypted_result = $csv_manager::VALUE_NOT_EXIST;
 
                             //Comment messageを生成
-                            $comment_message = "[set:$decrypted_result]" . "[paper_id:{$target_paper_id}]" .
+                            $comment_message = "[set:{$decrypted_result}]" . "[paper_id:{$target_paper_id}]" .
                                 "[entry_id:{$target_entry_id}]" . "[item_name:{$target_item_name}]";
                             $csv_manager->addCommentMessage($comment_message);
 
-                            //前日のcsvファイル
+                            //log messageを生成
+                            $log_message = "[export.php][response:false]" . "[response_value:{$response_value}]" .
+                                "[err_msg:{$err_message}]" . "[set:{$decrypted_result}]" .
+                                "[paper_id:{$target_paper_id}]" . "[entry_id:{$target_entry_id}]" .
+                                "[item_name:{$target_item_name}]";
+                            $log_manager->addLogMessage('ERR', $log_message);
+                        }
+                        //前々日のcsvへ出力設定
+                        $target_csv_array = &$csv_manager->csv_array_yesterday;
 
-
-                        } elseif ($target_datetime >= $csv_manager->yesterday_start
-                                    && $target_datetime <= $csv_manager->yesterday_end) {
-                            //前日の場合は、スキップ
+                    } elseif ($target_datetime >= $csv_manager->yesterday_start
+                        && $target_datetime <= $csv_manager->yesterday_end) {
+                        //前日の場合は、スキップ
+                        if(!$response_flag) {
                             $skip_flag = true;
                             //Commentを生成
                             $comment_message = "[skip]" . "[paper_id:{$target_paper_id}]";
                             $csv_manager->addCommentMessage($comment_message);
 
-                        } else {
-                            //当日の場合は？
-                            $skip_flag = true;
+                            //log messageを生成
+                            $log_message = "[export.php][response:false]" . "[response_value:{$response_value}]" .
+                                "[err_msg:{$err_message}]" . "[set:{$decrypted_result}]" .
+                                "[paper_id:{$target_paper_id}]" . "[entry_id:{$target_entry_id}]" .
+                                "[item_name:{$target_item_name}]";
+                            $log_manager->addLogMessage('ERR', $log_message);
                         }
+                        //前日のcsvへ出力設定
+                        $target_csv_array = &$csv_manager->csv_array;
+                    } else {
+                        //当日の場合は？
+                        $skip_flag = true;
+                    }
 
-                        //log messageを生成
-                        $log_message = "[export.php][response:false]" . "[response_value:{$response_value}]" .
-                            "[err_msg:$err_message]" . "[set:$decrypted_result]" .
-                            "[paper_id:{$target_paper_id}]" . "[entry_id:{$target_entry_id}]" .
-                            "[item_name:{$target_item_name}]";
-                        $log_manager->addLogMessage('ERR', $log_message);
-
-                        //
-                        if ($skip_flag) {
-                            break;
-                        }
+                    //
+                    if ($skip_flag) {
+                        break;
                     }
 
                     //バリエーション処理を実施
@@ -177,7 +186,7 @@ try{
                     /*↑↑↑ [end]バリエーションを実施<未実装> ↑↑↑*/
 
                     //resultを設定
-                    $csv_manager->csv_array[$target_list_key][$target_list_value][$row_csv_data['entry_id']] =
+                    $target_csv_array[$target_list_key][$target_list_value][$row_csv_data['entry_id']] =
                         $decrypted_result;
 
                     //priceを算出し
@@ -206,8 +215,6 @@ try{
                          WHERE parts_d_code = '{$row_csv_data['parts_d_code']}'
                          AND set_id = '{$set_id}';";
                 }//while
-
-                //
 
                 //
                 if (!$skip_flag) {

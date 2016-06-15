@@ -96,7 +96,6 @@ class CSVManager
      * @return $this->csv_file_path . '/' . $this->csv_file_name
      */
     public function getCSVFileFullPath($fileName) {
-        //return $this->csv_file_path . $this->csv_file_name;
         return $this->csv_file_path . $fileName;
     }
 
@@ -136,60 +135,35 @@ class CSVManager
      * csvファイルを出力
      *
      */
-    /*
     public function outputCsv() {
-        //
-        if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name))) {
-            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'w');
-            if ($this->csv_title && $this->csv_title_output_flag) {
-                //エンコード変換を実施
-                mb_convert_variables('sjis-win','UTF-8', $this->csv_title);
-                //csvファイルへ出力
-                fputcsv($fp, $this->csv_title);
-            }
-        } else {
-            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'a');
-        }
+        //エンコード変換を実施
+        mb_convert_variables('sjis-win','UTF-8', $this->csv_title);
 
-        //csvファイルへ出力
-        mb_convert_variables('sjis-win','UTF-8', $this->csv_array);
-        foreach ($this->csv_array as $csv_key => $csv_value){
-            foreach ($csv_value as $key => $value) {
-                //
-                fputcsv($fp, $this->csv_array[$csv_key][$key]);
-            }
-        }
-        //csvファイルをクローズ
-        fclose($fp);
-    }
-    */
-
-    public function outputCsv() {
         /*
          * 当日ファイルへ出力
          * */
-        if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name))) {
-            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'w');
-            if ($this->csv_title && $this->csv_title_output_flag) {
-                //エンコード変換を実施
-                mb_convert_variables('sjis-win','UTF-8', $this->csv_title);
-                //csvファイルへ出力
-                fputcsv($fp, $this->csv_title);
+        if ($this->csv_array) {
+            if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name))) {
+                $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'w');
+                if ($this->csv_title && $this->csv_title_output_flag) {
+                    //csvファイルへ出力
+                    fputcsv($fp, $this->csv_title);
+                }
+            } else {
+                $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'a');
             }
-        } else {
-            $fp = fopen($this->getCSVFileFullPath($this->csv_file_name),'a');
-        }
 
-        //csvファイルへ出力
-        mb_convert_variables('sjis-win','UTF-8', $this->csv_array);
-        foreach ($this->csv_array as $csv_key => $csv_value){
-            foreach ($csv_value as $key => $value) {
-                //
-                fputcsv($fp, $this->csv_array[$csv_key][$key]);
+            //csvファイルへ出力
+            mb_convert_variables('sjis-win','UTF-8', $this->csv_array);
+            foreach ($this->csv_array as $csv_key => $csv_value){
+                foreach ($csv_value as $key => $value) {
+                    //
+                    fputcsv($fp, $this->csv_array[$csv_key][$key]);
+                }
             }
+            //csvファイルをクローズ
+            fclose($fp);
         }
-        //csvファイルをクローズ
-        fclose($fp);
 
         /*
          * 前日ファイルへ出力
@@ -199,7 +173,6 @@ class CSVManager
             if (!file_exists ($this->getCSVFileFullPath($this->csv_file_name_yesterday))) {
                 $fp = fopen($this->getCSVFileFullPath($this->csv_file_name_yesterday),'w');
                 if ($this->csv_title && $this->csv_title_output_flag) {
-                    //当日でエンコード変換済のため、実施しない
                     //csvファイルへ出力
                     fputcsv($fp, $this->csv_title);
                 }
@@ -250,16 +223,6 @@ class CSVManager
             //エンコード変換を実施
             mb_convert_variables('sjis-win','UTF-8', $this->comment_array);
             //Commentファイルへ出力
-
-            /*
-            foreach ($this->comment_array as $comment_key => $comment_value){
-                foreach ($comment_value as $key => $value) {
-                    //
-                    fputcsv($fp, $this->comment_array[$comment_key][$key]);
-                }
-            }
-            */
-
             foreach ($this->comment_array as $comment_key => $comment_value){
                 fputcsv($fp, $this->comment_array[$comment_key]);
             }
