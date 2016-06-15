@@ -128,17 +128,9 @@ try{
                         $target_item_name = $row_csv_data['item_name'];
                         $target_entry_id = $row_csv_data['entry_id'];
                         //
-                        /*
-                        $csv_manager->comment_array[$target_paper_id][$target_entry_id]['paper_id'] = "[paper_id:$target_paper_id]";
-                        $csv_manager->comment_array[$target_paper_id][$target_entry_id]['entry_id'] = "[entry_id:$target_entry_id]";
-                        $csv_manager->comment_array[$target_paper_id][$target_entry_id]['item_name'] = "[item_name:$target_item_name]";
-                        */
-                        //
                         if ($target_datetime <= $csv_manager->before_yesterday_end) {
                             //前々日以前の場合は、値を設定
                             $decrypted_result = $csv_manager::VALUE_NOT_EXIST;
-                            //Commentを生成
-                            //$csv_manager->comment_array[$target_paper_id][$target_entry_id]['decrypted_result'] = "[set_to:$decrypted_result]";
 
                             //Comment messageを生成
                             $comment_message = "[set:$decrypted_result]" . "[paper_id:{$target_paper_id}]" .
@@ -151,9 +143,6 @@ try{
                             //前日の場合は、スキップ
                             $skip_flag = true;
                             //Commentを生成
-                            //$csv_manager->comment_array[$target_paper_id][$target_entry_id]['decrypted_result'] = "[skip]";
-
-                            //
                             $comment_message = "[skip]" . "[paper_id:{$target_paper_id}]";
                             $csv_manager->addCommentMessage($comment_message);
 
@@ -161,13 +150,6 @@ try{
                             //当日の場合は？
                             $skip_flag = true;
                         }
-
-                        //Comment messageを生成
-                        /*
-                        $comment_message = "[result:{$decrypted_result}]" . "[paper_id:{$target_paper_id}]" .
-                                           "[entry_id:{$target_entry_id}]" . "[item_name:{$target_item_name}]";
-                        $csv_manager->addCommentMessage($comment_message);
-                        */
 
                         //log messageを生成
                         $log_message = "[export.php][response:false]" . "[response_value:{$response_value}]" .
